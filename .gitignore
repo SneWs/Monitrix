@@ -17,6 +17,17 @@
 # Mono auto generated files
 mono_crash.*
 
+# Visual Studio
+.vs/
+.vscode/
+.vscode-test/
+.vscode-test-insiders/
+
+# Rider
+.idea/
+*.sln.iml
+*.idea/
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
