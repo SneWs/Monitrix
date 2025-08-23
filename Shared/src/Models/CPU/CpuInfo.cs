@@ -1,6 +1,6 @@
 namespace Monitrix.System.Models;
 
-public sealed class CpuInfo
+public sealed class CpuInfoModel
 {
     public string Architecture { get; init; } = string.Empty;
     

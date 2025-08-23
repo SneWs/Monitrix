@@ -23,6 +23,13 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.MapGet("/", () => "Welcome to Monitrix System API!");
+
+app.MapGet("/cpu", async (ICpuMonitoringService cpuMonitoringService) =>
+{
+    var cpuSnapshot = await cpuMonitoringService.ReadCpuSnapshotAsync();
+    return Results.Ok(cpuSnapshot);
+});
+
 app.MapGet("/cpu-info", async (ICpuMonitoringService cpuMonitoringService) =>
 {
     var cpuInfo = await cpuMonitoringService.ReadCpuInfoAsync();

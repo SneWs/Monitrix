@@ -11,9 +11,11 @@ namespace Monitrix.System.Services.System.CPU
 {
     public interface ICpuMonitoringService
     {
-        ValueTask<CpuInfo> ReadCpuInfoAsync();
+        ValueTask<CpuSnapshotModel> ReadCpuSnapshotAsync();
 
-        ValueTask<CpuUsage> ReadCpuUsageAsync();
+        ValueTask<CpuInfoModel> ReadCpuInfoAsync();
+
+        ValueTask<CpuUsageModel> ReadCpuUsageAsync();
     }
 
     public sealed class CpuMonitoringService : ICpuMonitoringService
@@ -26,7 +28,18 @@ namespace Monitrix.System.Services.System.CPU
             _logger = logger;
         }
 
-        public async ValueTask<CpuInfo> ReadCpuInfoAsync()
+        public async ValueTask<CpuSnapshotModel> ReadCpuSnapshotAsync()
+        {
+            var cpuInfo = await ReadCpuInfoAsync();
+            var cpuUsage = await ReadCpuUsageAsync();
+
+            return new CpuSnapshotModel {
+                CpuInfo = cpuInfo,
+                CpuUsage = cpuUsage
+            };
+        }
+
+        public async ValueTask<CpuInfoModel> ReadCpuInfoAsync()
         {
             try
             {
@@ -34,11 +47,11 @@ namespace Monitrix.System.Services.System.CPU
                 if (!File.Exists(cpuInfoPath))
                 {
                     _logger.LogWarning("CPU info file not found at {Path}", cpuInfoPath);
-                    return new CpuInfo();
+                    return new CpuInfoModel();
                 }
 
                 var lines = await File.ReadAllLinesAsync(cpuInfoPath);
-                
+
                 string architecture = string.Empty;
                 string modelName = string.Empty;
                 string vendorId = string.Empty;
@@ -46,7 +59,7 @@ namespace Monitrix.System.Services.System.CPU
                 int threadCount = 0;
                 var physicalIds = new HashSet<int>();
                 var coreIds = new HashSet<string>();
-                
+
                 foreach (var line in lines)
                 {
                     if (string.IsNullOrWhiteSpace(line))
@@ -65,12 +78,12 @@ namespace Monitrix.System.Services.System.CPU
                             if (string.IsNullOrEmpty(modelName))
                                 modelName = value;
                             break;
-                            
+
                         case "vendor_id":
                             if (string.IsNullOrEmpty(vendorId))
                                 vendorId = value;
                             break;
-                            
+
                         case "cpu family":
                             if (string.IsNullOrEmpty(architecture))
                             {
@@ -82,17 +95,17 @@ namespace Monitrix.System.Services.System.CPU
                                 };
                             }
                             break;
-                            
+
                         case "processor":
                             if (int.TryParse(value, out var processorId))
                                 threadCount = Math.Max(threadCount, processorId + 1);
                             break;
-                            
+
                         case "physical id":
                             if (int.TryParse(value, out var physicalId))
                                 physicalIds.Add(physicalId);
                             break;
-                            
+
                         case "core id":
                             if (int.TryParse(value, out var coreId) && physicalIds.Count > 0)
                             {
@@ -130,7 +143,7 @@ namespace Monitrix.System.Services.System.CPU
 
                 bool isHyperThreadingEnabled = threadCount > coreCount;
 
-                return new CpuInfo
+                return new CpuInfoModel
                 {
                     Architecture = architecture,
                     ModelName = modelName,
@@ -147,7 +160,7 @@ namespace Monitrix.System.Services.System.CPU
             }
         }
 
-        public async ValueTask<CpuUsage> ReadCpuUsageAsync()
+        public async ValueTask<CpuUsageModel> ReadCpuUsageAsync()
         {
             try
             {
@@ -164,7 +177,7 @@ namespace Monitrix.System.Services.System.CPU
                 // Store current stats for next calculation
                 _previousCpuStats = currentStats;
 
-                return new CpuUsage
+                return new CpuUsageModel
                 {
                     CpuSpeedMhz = cpuSpeedMhz,
                     CurrentSpeedMhz = currentSpeedMhz,
@@ -282,7 +295,7 @@ namespace Monitrix.System.Services.System.CPU
             return stats;
         }
 
-        private async ValueTask<(double totalUsage, IReadOnlyList<double> perCoreUsage)> CalculateCpuUsage(Dictionary<string, long[]> currentStats)
+        private async ValueTask<(float totalUsage, IReadOnlyList<float> perCoreUsage)> CalculateCpuUsage(Dictionary<string, long[]> currentStats)
         {
             if (_previousCpuStats == null)
             {
@@ -298,12 +311,12 @@ namespace Monitrix.System.Services.System.CPU
             return CalculateCpuUsageInternal(currentStats, _previousCpuStats);
         }
 
-        private (double totalUsage, IReadOnlyList<double> perCoreUsage) CalculateCpuUsageInternal(
-            Dictionary<string, long[]> current, 
+        private (float totalUsage, IReadOnlyList<float> perCoreUsage) CalculateCpuUsageInternal(
+            Dictionary<string, long[]> current,
             Dictionary<string, long[]> previous)
         {
             var totalUsage = CalculateUsageForCpu("cpu", current, previous);
-            var perCoreUsage = new List<double>();
+            var perCoreUsage = new List<float>();
 
             // Calculate per-core usage
             int coreIndex = 0;
@@ -317,10 +330,10 @@ namespace Monitrix.System.Services.System.CPU
             return (totalUsage, perCoreUsage);
         }
 
-        private double CalculateUsageForCpu(string cpuName, Dictionary<string, long[]> current, Dictionary<string, long[]> previous)
+        private float CalculateUsageForCpu(string cpuName, Dictionary<string, long[]> current, Dictionary<string, long[]> previous)
         {
             if (!current.ContainsKey(cpuName) || !previous.ContainsKey(cpuName))
-                return 0.0;
+                return 0.0f;
 
             var currentValues = current[cpuName];
             var previousValues = previous[cpuName];
@@ -336,10 +349,10 @@ namespace Monitrix.System.Services.System.CPU
             var idleDiff = currentIdle - previousIdle;
 
             if (totalDiff == 0)
-                return 0.0;
+                return 0.0f;
 
-            var usage = (double)(totalDiff - idleDiff) / totalDiff * 100.0;
-            return Math.Max(0.0, Math.Min(100.0, usage));
+            var usage = (float)(totalDiff - idleDiff) / totalDiff * 100.0f;
+            return MathF.Max(0.0f, MathF.Min(100.0f, usage));
         }
 
         private async Task<int> GetCoreCountFromSysAsync()

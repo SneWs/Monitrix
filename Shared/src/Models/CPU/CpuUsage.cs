@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Monitrix.System.Models;
 
-public sealed class CpuUsage
+public sealed class CpuUsageModel
 {
     public double CpuSpeedMhz { get; init; }
 
@@ -11,5 +11,5 @@ public sealed class CpuUsage
 
     public double TotalUsagePercentage { get; init; }
 
-    public IReadOnlyList<double> PerCoreUsagePercentage { get; init; } = Array.Empty<double>();
+    public IReadOnlyList<float> PerCoreUsagePercentage { get; init; } = Array.Empty<float>();
 }
