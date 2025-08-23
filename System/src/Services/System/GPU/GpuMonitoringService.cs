@@ -12,7 +12,7 @@ namespace Monitrix.System.Services.System.GPU;
 
 public interface IGpuMonitoringService
 {
-    ValueTask<GpuSnapshot> GetGpuSnapshotAsync();
+    ValueTask<GpuSnapshotModel> GetGpuSnapshotAsync();
 
     ValueTask<IReadOnlyList<GpuInfo>> ListGpusAsync();
 
@@ -28,12 +28,12 @@ public sealed class GpuMonitoringService : IGpuMonitoringService
         _logger = logger;
     }
 
-    public async ValueTask<GpuSnapshot> GetGpuSnapshotAsync()
+    public async ValueTask<GpuSnapshotModel> GetGpuSnapshotAsync()
     {
         var gpuInfo = await ListGpusAsync();
         var gpuUsage = await GetGpuUsageAsync();
 
-        return new GpuSnapshot {
+        return new GpuSnapshotModel {
             GpuInfo = gpuInfo,
             GpuUsage = gpuUsage
         };

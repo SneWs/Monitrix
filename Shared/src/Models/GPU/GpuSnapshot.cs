@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Monitrix.System.Models;
 
-public sealed class GpuSnapshot
+public sealed class GpuSnapshotModel
 {
     public IReadOnlyList<GpuInfo> GpuInfo { get; init; } = new List<GpuInfo>();
 

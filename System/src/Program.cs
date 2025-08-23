@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Monitrix.System.Services.System;
 using Monitrix.System.Services.System.CPU;
 using Monitrix.System.Services.System.GPU;
 using Monitrix.System.Services.System.Network;
@@ -16,6 +17,7 @@ builder.Services.AddScoped<IRamMonitoringService, RamMonitoringService>();
 builder.Services.AddScoped<IProcessMonitoringService, ProcessMonitoringService>();
 builder.Services.AddScoped<IGpuMonitoringService, GpuMonitoringService>();
 builder.Services.AddScoped<INetworkMonitoringService, NetworkMonitoringService>();
+builder.Services.AddScoped<ISystemSnapshotService, SystemSnapshotService>();
 
 var app = builder.Build();
 
@@ -28,6 +30,12 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.MapGet("/", () => "Welcome to Monitrix System API!");
+
+app.MapGet("/system/snapshot", async (ISystemSnapshotService systemSnapshotService) =>
+{
+    var snapshot = await systemSnapshotService.TakeSnapshotAsync();
+    return Results.Ok(snapshot);
+});
 
 app.MapGet("/cpu", async (ICpuMonitoringService cpuMonitoringService) =>
 {
