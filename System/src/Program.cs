@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Monitrix.System.Services.System.CPU;
+using Monitrix.System.Services.System.GPU;
 using Monitrix.System.Services.System.ProcessInfo;
 using Monitrix.System.Services.System.RAM;
 
@@ -12,6 +13,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddScoped<ICpuMonitoringService, CpuMonitoringService>();
 builder.Services.AddScoped<IRamMonitoringService, RamMonitoringService>();
 builder.Services.AddScoped<IProcessMonitoringService, ProcessMonitoringService>();
+builder.Services.AddScoped<IGpuMonitoringService, GpuMonitoringService>();
 
 var app = builder.Build();
 
@@ -53,6 +55,24 @@ app.MapGet("/processes", async (IProcessMonitoringService processMonitoringServi
 {
     var processes = await processMonitoringService.ListProcessesAsync();
     return Results.Ok(processes);
+});
+
+app.MapGet("/gpu", async (IGpuMonitoringService gpuMonitoringService) =>
+{
+    var gpuSnapshot = await gpuMonitoringService.GetGpuSnapshotAsync();
+    return Results.Ok(gpuSnapshot);
+});
+
+app.MapGet("/gpu-info", async (IGpuMonitoringService gpuMonitoringService) =>
+{
+    var gpus = await gpuMonitoringService.ListGpusAsync();
+    return Results.Ok(gpus);
+});
+
+app.MapGet("/gpu-usage", async (IGpuMonitoringService gpuMonitoringService) =>
+{
+    var gpuUsage = await gpuMonitoringService.GetGpuUsageAsync();
+    return Results.Ok(gpuUsage);
 });
 
 app.Run();
