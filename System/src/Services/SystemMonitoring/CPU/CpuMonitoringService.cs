@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Monitrix.System.Models;
 
-namespace Monitrix.System.Services.System.CPU;
+namespace Monitrix.SystemMonitoring.Services.SystemMonitoring.CPU;
 
 public interface ICpuMonitoringService
 {

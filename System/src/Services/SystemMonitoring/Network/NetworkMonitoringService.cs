@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Monitrix.System.Models;
 
-namespace Monitrix.System.Services.System.Network;
+namespace Monitrix.SystemMonitoring.Services.SystemMonitoring.Network;
 
 public interface INetworkMonitoringService
 {

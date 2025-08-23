@@ -6,7 +6,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <DefaultNamespace>Monitrix.System</DefaultNamespace>
     <AssemblyName>Monitrix.System</AssemblyName>
-    <RootNamespace>Monitrix.System </RootNamespace>
+    <RootNamespace>Monitrix.SystemMonitoring</RootNamespace>
     <Company>Monitrix</Company>
     <Product>Monitrix</Product>
   </PropertyGroup>

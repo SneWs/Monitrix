@@ -15,15 +15,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monitrix", "Web\Monitrix\sr
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "System", "System", "{0425AA66-9304-4ECC-ABDB-559250474E26}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System", "System\src\System.csproj", "{29B547CE-3637-4AD6-BC1F-86904125D695}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitrixSystem", "System\src\MonitrixSystem.csproj", "{29B547CE-3637-4AD6-BC1F-86904125D695}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{D3946C0F-572D-4F06-B2C7-7686D9F33B6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -38,6 +35,9 @@ Global
 		{29B547CE-3637-4AD6-BC1F-86904125D695}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{29B547CE-3637-4AD6-BC1F-86904125D695}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{29B547CE-3637-4AD6-BC1F-86904125D695}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{D3946C0F-572D-4F06-B2C7-7686D9F33B6B} = {674437B6-E6FD-44AE-B0D6-081CEB6B5AF6}

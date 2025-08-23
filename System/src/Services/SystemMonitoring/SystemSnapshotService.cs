@@ -1,12 +1,12 @@
 using System.Threading.Tasks;
 using Monitrix.System.Models;
-using Monitrix.System.Services.System.CPU;
-using Monitrix.System.Services.System.GPU;
-using Monitrix.System.Services.System.Network;
-using Monitrix.System.Services.System.ProcessInfo;
-using Monitrix.System.Services.System.RAM;
+using Monitrix.SystemMonitoring.Services.SystemMonitoring.CPU;
+using Monitrix.SystemMonitoring.Services.SystemMonitoring.GPU;
+using Monitrix.SystemMonitoring.Services.SystemMonitoring.Network;
+using Monitrix.SystemMonitoring.Services.SystemMonitoring.ProcessInfo;
+using Monitrix.SystemMonitoring.Services.SystemMonitoring.RAM;
 
-namespace Monitrix.System.Services.System;
+namespace Monitrix.SystemMonitoring.Services.SystemMonitoring;
 
 public interface ISystemSnapshotService
 {

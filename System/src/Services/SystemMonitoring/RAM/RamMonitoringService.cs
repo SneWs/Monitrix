@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Monitrix.System.Models;
 
-namespace Monitrix.System.Services.System.RAM;
+namespace Monitrix.SystemMonitoring.Services.SystemMonitoring.RAM;
 
 public interface IRamMonitoringService
 {

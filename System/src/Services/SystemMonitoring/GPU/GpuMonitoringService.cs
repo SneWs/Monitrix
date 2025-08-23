@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Monitrix.System.Models;
 
-namespace Monitrix.System.Services.System.GPU;
+namespace Monitrix.SystemMonitoring.Services.SystemMonitoring.GPU;
 
 public interface IGpuMonitoringService
 {

@@ -1,8 +1,11 @@
-using MudBlazor.Services;
-using Monitrix.Components;
+using System;
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Monitrix.Components;
+using Monitrix.MonitoringClient;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +15,14 @@ builder.Services.AddMudServices();
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// Setup and bind http client for client api side
+builder.Services.AddHttpClient<MonitrixHttpClient>(x => {
+    x.BaseAddress = new Uri(builder.Configuration["SystemMonitoringEndpoint:BaseUrl"]!);
+    x.Timeout = TimeSpan.FromSeconds(10);
+    x.DefaultRequestHeaders.Accept.Clear();
+    x.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+});
 
 var app = builder.Build();
 

@@ -6,8 +6,12 @@
     <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
 
-
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="8.*" />
+    <PackageReference Include="System.Net.Http.Json" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\src\Shared.csproj" />
   </ItemGroup>
 </Project>

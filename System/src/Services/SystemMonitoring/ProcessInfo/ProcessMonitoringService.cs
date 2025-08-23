@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Monitrix.System.Models;
 
-namespace Monitrix.System.Services.System.ProcessInfo;
+namespace Monitrix.SystemMonitoring.Services.SystemMonitoring.ProcessInfo;
 
 public interface IProcessMonitoringService
 {

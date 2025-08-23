@@ -1,59 +1,162 @@
 ﻿@page "/"
+@using Monitrix.MonitoringClient
+@using Monitrix.System.Models
+@using global::System.Threading
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Overview</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Hello, world!</MudText>
-<MudText Class="mb-8">Welcome to your new app, powered by MudBlazor and the .NET 9 Template!</MudText>
+@inject MonitrixHttpClient HttpApi
 
-<MudAlert Severity="Severity.Normal" ContentAlignment="HorizontalAlignment.Start">
-    You can find documentation and examples on our website here:
-    <MudLink Href="https://mudblazor.com" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
-        <b>www.mudblazor.com</b>
-    </MudLink>
-</MudAlert>
+<MudContainer MaxWidth="MaxWidth.Large" Class="pa-4">
+    <MudText Typo="Typo.h3" Class="mb-6">System Overview</MudText>
+    
+    <MudGrid>
+        <MudItem xs="12" md="6" lg="4">
+            <MudPaper Class="pa-6" Elevation="4">
+                <MudStack AlignItems="AlignItems.Center" Spacing="4">
+                    <!-- CPU Usage Gauge -->
+                    <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                        <MudText Typo="Typo.h5">CPU Usage</MudText>
+                        <div style="position: relative;">
+                            <MudProgressCircular 
+                                Color="@GetCpuUsageColor(_cpuSnapshot.CpuUsage.TotalUsagePercentage)"
+                                Size="Size.Large" 
+                                Indeterminate="false" 
+                                Value="@((int)_cpuSnapshot.CpuUsage.TotalUsagePercentage)"
+                                StrokeWidth="8"
+                                Style="width: 120px; height: 120px;" />
+                            
+                            <!-- Centered percentage text -->
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                <MudText Typo="Typo.h4" Style="font-weight: bold;">
+                                    @($"{_cpuSnapshot.CpuUsage.TotalUsagePercentage:F1}%")
+                                </MudText>
+                            </div>
+                        </div>
+                        
+                        <!-- Speed Information -->
+                        <MudText Typo="Typo.body2" Class="text-center">
+                            @($"{_cpuSnapshot.CpuUsage.CurrentSpeedMhz:F0} MHz / {_cpuSnapshot.CpuUsage.CpuSpeedMhz:F0} MHz")
+                        </MudText>
+                    </MudStack>
 
-<br />
-<MudText Typo="Typo.h5" GutterBottom="true">Interactivity in this Template</MudText>
-<br />
-<MudText Typo="Typo.body2">
-    When you opt for the "Global" Interactivity Location, <br />
-    the render modes are defined in App.razor and consequently apply to all child components.<br />
-    In this case, providers are globally set in the MainLayout.<br />
-    <br />
-    On the other hand, if you choose the "Per page/component" Interactivity Location,<br />
-    it is necessary to include the <br />
-    <br />
-    &lt;MudPopoverProvider /&gt; <br />
-    &lt;MudDialogProvider /&gt; <br />
-    &lt;MudSnackbarProvider /&gt; <br />
-    <br />
-    components on every interactive page.<br />
-    <br />
-    If a render mode is not specified for a page, it defaults to Server-Side Rendering (SSR),<br />
-    similar to this page. While MudBlazor allows pages to be rendered in SSR,<br />
-    please note that interactive features, such as buttons and dropdown menus, will not be functional.
-</MudText>
+                    <MudDivider />
 
-<br />
-<MudText Typo="Typo.h5" GutterBottom="true">What's New in Blazor with the Release of .NET 9</MudText>
-<br />
+                    <!-- CPU Information -->
+                    <MudStack Spacing="3" Style="width: 100%;">
+                        <MudText Typo="Typo.h6" Class="mb-2">CPU Information</MudText>
+                        
+                        <MudStack Spacing="2">
+                            <div class="d-flex justify-space-between">
+                                <MudText Typo="Typo.body2" Style="font-weight: 500;">Model:</MudText>
+                                <MudText Typo="Typo.body2">@_cpuSnapshot.CpuInfo.ModelName</MudText>
+                            </div>
+                            
+                            <div class="d-flex justify-space-between">
+                                <MudText Typo="Typo.body2" Style="font-weight: 500;">Vendor:</MudText>
+                                <MudText Typo="Typo.body2">@_cpuSnapshot.CpuInfo.VendorId</MudText>
+                            </div>
+                            
+                            <div class="d-flex justify-space-between">
+                                <MudText Typo="Typo.body2" Style="font-weight: 500;">Architecture:</MudText>
+                                <MudText Typo="Typo.body2">@_cpuSnapshot.CpuInfo.Architecture</MudText>
+                            </div>
+                            
+                            <div class="d-flex justify-space-between">
+                                <MudText Typo="Typo.body2" Style="font-weight: 500;">Cores:</MudText>
+                                <MudText Typo="Typo.body2">@_cpuSnapshot.CpuInfo.CoreCount</MudText>
+                            </div>
+                            
+                            <div class="d-flex justify-space-between">
+                                <MudText Typo="Typo.body2" Style="font-weight: 500;">Threads:</MudText>
+                                <MudText Typo="Typo.body2">@_cpuSnapshot.CpuInfo.ThreadCount</MudText>
+                            </div>
+                        </MudStack>
+                    </MudStack>
+                    
+                    <!-- Per-Core Usage -->
+                    @if (_cpuSnapshot.CpuUsage.PerCoreUsagePercentage.Any())
+                    {
+                        <MudDivider />
+                        <MudStack Spacing="2" Style="width: 100%;">
+                            <MudText Typo="Typo.h6">Per-Core Usage</MudText>
+                            @for (int i = 0; i < _cpuSnapshot.CpuUsage.PerCoreUsagePercentage.Count; i++)
+                            {
+                                var coreUsage = _cpuSnapshot.CpuUsage.PerCoreUsagePercentage[i];
+                                var coreIndex = i;
+                                <div class="d-flex align-center gap-3">
+                                    <MudText Typo="Typo.body2" Style="min-width: 60px; font-weight: 500;">
+                                        Core @(coreIndex + 1):
+                                    </MudText>
+                                    <MudProgressLinear 
+                                        Color="@GetCpuUsageColor(coreUsage)" 
+                                        Value="coreUsage" 
+                                        Class="flex-grow-1" 
+                                        Rounded="true"
+                                        StrikeHeight="8" />
+                                    <MudText Typo="Typo.body2" Style="min-width: 50px; text-align: right;">
+                                        @($"{coreUsage:F1}%")
+                                    </MudText>
+                                </div>
+                            }
+                        </MudStack>
+                    }
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+        
+        <!-- You can add more system metrics here -->
+        <MudItem xs="12" md="6" lg="4">
+            <MudPaper Class="pa-6" Elevation="4">
+                <MudText Typo="Typo.h5" Class="mb-4">Memory & Storage</MudText>
+                <MudText Typo="Typo.body1">Coming soon...</MudText>
+            </MudPaper>
+        </MudItem>
+        
+        <MudItem xs="12" md="6" lg="4">
+            <MudPaper Class="pa-6" Elevation="4">
+                <MudText Typo="Typo.h5" Class="mb-4">Network</MudText>
+                <MudText Typo="Typo.body1">Coming soon...</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
 
-<MudText Typo="Typo.h6" GutterBottom="true">Prerendering</MudText>
-<MudText Typo="Typo.body2" GutterBottom="true">
-    If you're exploring the features of .NET 9 Blazor,<br /> you might be pleasantly surprised to learn that each page is prerendered on the server,<br /> regardless of the selected render mode.<br /><br />
-    This means that you'll need to inject all necessary services on the server,<br /> even when opting for the wasm (WebAssembly) render mode.<br /><br />
-    This prerendering functionality is crucial to ensuring that WebAssembly mode feels fast and responsive,<br /> especially when it comes to initial page load times.<br /><br />
-    For more information on how to detect prerendering and leverage the RenderContext, you can refer to the following link:
-    <MudLink Href="https://github.com/dotnet/aspnetcore/issues/51468#issuecomment-1783568121" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
-        More details
-    </MudLink>
-</MudText>
+@code {
+    private CpuSnapshotModel _cpuSnapshot = new();
+    private Timer _refreshTimer = null!;
 
-<br />
-<MudText Typo="Typo.h6" GutterBottom="true">InteractiveAuto</MudText>
-<MudText Typo="Typo.body2">
-    A discussion on how to achieve this can be found here:
-    <MudLink Href="https://github.com/dotnet/aspnetcore/issues/51468#issue-1950424116" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
-        More details
-    </MudLink>
-</MudText>
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCpuInfoAsync(true);
+
+        _refreshTimer = new Timer(async _ => await LoadCpuInfoAsync(), null, 0, 2000);
+
+        await base.OnInitializedAsync();
+    }
+
+    private async Task LoadCpuInfoAsync(bool isFirstLoad = false)
+    {
+        var cpuSnapshot = await HttpApi.GetCpuSnapshotAsync();
+        if (cpuSnapshot != null)
+        {
+            await InvokeAsync(() => {
+                _cpuSnapshot = cpuSnapshot;
+                if (!isFirstLoad)
+                    StateHasChanged();
+            });
+        }
+    }
+
+    private Color GetCpuUsageColor(double usage)
+    {
+        return usage switch
+        {
+            <= 30 => Color.Success,
+            <= 69 => Color.Warning,
+            <= 90 => Color.Error,
+            _ => Color.Error
+        };
+    }
+}
+
