@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Monitrix.System.Services.System.CPU;
 using Monitrix.System.Services.System.GPU;
+using Monitrix.System.Services.System.Network;
 using Monitrix.System.Services.System.ProcessInfo;
 using Monitrix.System.Services.System.RAM;
 
@@ -14,6 +15,7 @@ builder.Services.AddScoped<ICpuMonitoringService, CpuMonitoringService>();
 builder.Services.AddScoped<IRamMonitoringService, RamMonitoringService>();
 builder.Services.AddScoped<IProcessMonitoringService, ProcessMonitoringService>();
 builder.Services.AddScoped<IGpuMonitoringService, GpuMonitoringService>();
+builder.Services.AddScoped<INetworkMonitoringService, NetworkMonitoringService>();
 
 var app = builder.Build();
 
@@ -73,6 +75,12 @@ app.MapGet("/gpu-usage", async (IGpuMonitoringService gpuMonitoringService) =>
 {
     var gpuUsage = await gpuMonitoringService.GetGpuUsageAsync();
     return Results.Ok(gpuUsage);
+});
+
+app.MapGet("/network-info", async (INetworkMonitoringService networkMonitoringService) =>
+{
+    var networkInterfaces = await networkMonitoringService.ListNetworkInterfacesAsync();
+    return Results.Ok(networkInterfaces);
 });
 
 app.Run();
