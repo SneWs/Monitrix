@@ -1,0 +1,23 @@
+[Unit]
+Description=Monitrix System Monitoring Service
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/monitrix/daemon
+ExecStart=/opt/monitrix/daemon/Monitrix.System
+Restart=always
+RestartSec=10
+TimeoutStopSec=20
+KillMode=mixed
+SyslogIdentifier=monitrix
+
+# Environment
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_ENVIRONMENT=Production
+
+[Install]
+WantedBy=multi-user.target
