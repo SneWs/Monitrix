@@ -35,4 +35,15 @@ public sealed class MonitrixHttpClient
 
         return Task.FromResult<RamUsageModel?>(new());
     }
+
+    public Task<GpuSnapshotModel?> GetGpuUsageAsync()
+    {
+        try
+        {
+            return _httpClient.GetFromJsonAsync<GpuSnapshotModel>("/gpu");
+        }
+        catch { }
+
+        return Task.FromResult<GpuSnapshotModel?>(new());
+    }
 }
