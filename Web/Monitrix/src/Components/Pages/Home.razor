@@ -17,14 +17,14 @@
                     <!-- CPU Usage Gauge -->
                     <MudStack AlignItems="AlignItems.Center" Spacing="2">
                         <MudText Typo="Typo.h5">CPU Usage</MudText>
-                        <div style="position: relative;">
+                        <div style="position: relative; border: 3px solid var(--mud-palette-divider); border-radius: 50%; background-color: var(--mud-palette-surface); width: 200px; height: 200px;">
                             <MudProgressCircular 
                                 Color="@GetCpuUsageColor(_cpuSnapshot.CpuUsage.TotalUsagePercentage)"
                                 Size="Size.Large" 
                                 Indeterminate="false" 
                                 Value="@((int)_cpuSnapshot.CpuUsage.TotalUsagePercentage)"
                                 StrokeWidth="8"
-                                Style="width: 120px; height: 120px;" />
+                                Style="width: 190px; height: 190px; position: absolute; top: 3px; left: 3px;" />
                             
                             <!-- Centered percentage text -->
                             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
@@ -115,14 +115,14 @@
                     <!-- Memory Usage Gauge -->
                     <MudStack AlignItems="AlignItems.Center" Spacing="2">
                         <MudText Typo="Typo.h5">Memory Usage</MudText>
-                        <div style="position: relative;">
+                        <div style="position: relative; border: 3px solid var(--mud-palette-divider); border-radius: 50%; background-color: var(--mud-palette-surface); width: 200px; height: 200px;">
                             <MudProgressCircular 
                                 Color="@GetMemoryUsageColor(_ramUsage.UsedPercentage)"
                                 Size="Size.Large" 
                                 Indeterminate="false" 
                                 Value="@((int)_ramUsage.UsedPercentage)"
                                 StrokeWidth="8"
-                                Style="width: 120px; height: 120px;" />
+                                Style="width: 190px; height: 190px; position: absolute; top: 3px; left: 3px;" />
                             
                             <!-- Centered percentage text -->
                             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
@@ -173,14 +173,14 @@
                         <!-- GPU Usage Gauge (First GPU) -->
                         <MudStack AlignItems="AlignItems.Center" Spacing="2">
                             <MudText Typo="Typo.h5">GPU Usage</MudText>
-                            <div style="position: relative;">
+                            <div style="position: relative; border: 3px solid var(--mud-palette-divider); border-radius: 50%; background-color: var(--mud-palette-surface); width: 200px; height: 200px;">
                                 <MudProgressCircular 
                                     Color="@GetGpuUsageColor(_gpuSnapshot.GpuUsage[0].CoreUsedPercentage)"
                                     Size="Size.Large" 
                                     Indeterminate="false" 
                                     Value="@((int)_gpuSnapshot.GpuUsage[0].CoreUsedPercentage)"
                                     StrokeWidth="8"
-                                    Style="width: 120px; height: 120px;" />
+                                    Style="width: 190px; height: 190px; position: absolute; top: 3px; left: 3px;" />
                                 
                                 <!-- Centered percentage text -->
                                 <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
@@ -205,15 +205,7 @@
                             var gpuUsage = i < _gpuSnapshot.GpuUsage.Count ? _gpuSnapshot.GpuUsage[i] : null;
                             
                             <MudStack Spacing="3" Style="width: 100%;">
-                                @if (_gpuSnapshot.GpuInfo.Count > 1)
-                                {
-                                    <MudText Typo="Typo.h6" Class="mb-2">GPU @(i + 1) Information</MudText>
-                                }
-                                else
-                                {
-                                    <MudText Typo="Typo.h6" Class="mb-2">GPU Information</MudText>
-                                }
-                                
+
                                 <MudStack Spacing="2">
                                     <div class="d-flex justify-space-between">
                                         <MudText Typo="Typo.body2" Style="font-weight: 500;">Model:</MudText>
@@ -270,15 +262,15 @@
                 <MudPaper Class="pa-6" Elevation="4">
                     <MudStack AlignItems="AlignItems.Center" Spacing="4">
                         <MudText Typo="Typo.h5">GPU Usage</MudText>
-                            <div style="position: relative;">
-                                <MudProgressCircular 
-                                    Color="@GetGpuUsageColor(0)"
-                                    Size="Size.Large" 
-                                    Indeterminate="false" 
-                                    Value="0"
-                                    StrokeWidth="8"
-                                    Style="width: 120px; height: 120px;" />
-                            </div>
+                        <div style="position: relative; border: 3px solid var(--mud-palette-divider); border-radius: 50%; background-color: var(--mud-palette-surface); width: 200px; height: 200px;">
+                            <MudProgressCircular 
+                                Color="@GetGpuUsageColor(0)"
+                                Size="Size.Large" 
+                                Indeterminate="false" 
+                                Value="0"
+                                StrokeWidth="8"
+                                Style="width: 190px; height: 190px; position: absolute; top: 3px; left: 3px;" />
+                        </div>
                     </MudStack>
                 </MudPaper>
             </MudItem>
