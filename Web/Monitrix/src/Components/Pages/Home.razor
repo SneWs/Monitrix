@@ -92,8 +92,7 @@
                                         Color="@GetCpuUsageColor(coreUsage)" 
                                         Value="coreUsage" 
                                         Class="flex-grow-1" 
-                                        Rounded="true"
-                                        StrikeHeight="8" />
+                                        Rounded="true" />
                                     <MudText Typo="Typo.body2" Style="min-width: 50px; text-align: right;">
                                         @($"{coreUsage:F1}%")
                                     </MudText>
@@ -108,8 +107,57 @@
         <!-- You can add more system metrics here -->
         <MudItem xs="12" md="6" lg="4">
             <MudPaper Class="pa-6" Elevation="4">
-                <MudText Typo="Typo.h5" Class="mb-4">Memory & Storage</MudText>
-                <MudText Typo="Typo.body1">Coming soon...</MudText>
+                <MudStack AlignItems="AlignItems.Center" Spacing="4">
+                    <!-- Memory Usage Gauge -->
+                    <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                        <MudText Typo="Typo.h5">Memory Usage</MudText>
+                        <div style="position: relative;">
+                            <MudProgressCircular 
+                                Color="@GetMemoryUsageColor(_ramUsage.UsedPercentage)"
+                                Size="Size.Large" 
+                                Indeterminate="false" 
+                                Value="@((int)_ramUsage.UsedPercentage)"
+                                StrokeWidth="8"
+                                Style="width: 120px; height: 120px;" />
+                            
+                            <!-- Centered percentage text -->
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                <MudText Typo="Typo.h4" Style="font-weight: bold;">
+                                    @($"{_ramUsage.UsedPercentage:F1}%")
+                                </MudText>
+                            </div>
+                        </div>
+                        
+                        <!-- Total Memory Information -->
+                        <MudText Typo="Typo.body2" Class="text-center">
+                            @($"{FormatBytes(_ramUsage.TotalBytes)} Total")
+                        </MudText>
+                    </MudStack>
+
+                    <MudDivider />
+
+                    <!-- Memory Information -->
+                    <MudStack Spacing="3" Style="width: 100%;">
+                        <MudText Typo="Typo.h6" Class="mb-2">Memory Information</MudText>
+                        
+                        <MudStack Spacing="2">
+                            <div class="d-flex justify-space-between">
+                                <MudText Typo="Typo.body2" Style="font-weight: 500;">Used:</MudText>
+                                <MudText Typo="Typo.body2">@FormatBytes(_ramUsage.UsedBytes)</MudText>
+                            </div>
+                            
+                            <div class="d-flex justify-space-between">
+                                <MudText Typo="Typo.body2" Style="font-weight: 500;">Free:</MudText>
+                                <MudText Typo="Typo.body2">@FormatBytes(_ramUsage.FreeBytes)</MudText>
+                            </div>
+                            
+                            <div class="d-flex justify-space-between">
+                                <MudText Typo="Typo.body2" Style="font-weight: 500;">Total:</MudText>
+                                <MudText Typo="Typo.body2">@FormatBytes(_ramUsage.TotalBytes)</MudText>
+                            </div>
+                        </MudStack>
+                    </MudStack>
+                </MudStack>
             </MudPaper>
         </MudItem>
         
@@ -124,15 +172,26 @@
 
 @code {
     private CpuSnapshotModel _cpuSnapshot = new();
+    private RamUsageModel _ramUsage = new();
     private Timer _refreshTimer = null!;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadCpuInfoAsync(true);
+        await LoadRamUsageAsync(true);
 
-        _refreshTimer = new Timer(async _ => await LoadCpuInfoAsync(), null, 0, 2000);
+        _refreshTimer = new Timer(async _ => await ReloadStatsAsync(), null, 0, 2000);
 
         await base.OnInitializedAsync();
+    }
+
+    private async Task ReloadStatsAsync()
+    {
+        var t1 = LoadCpuInfoAsync(true);
+        var t2 = LoadRamUsageAsync(true);
+
+        await Task.WhenAll(t1, t2);
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadCpuInfoAsync(bool isFirstLoad = false)
@@ -148,6 +207,19 @@
         }
     }
 
+    private async Task LoadRamUsageAsync(bool isFirstLoad = false)
+    {
+        var ramUsage = await HttpApi.GetRamUsageAsync();
+        if (ramUsage != null)
+        {
+            await InvokeAsync(() => {
+                _ramUsage = ramUsage;
+                if (!isFirstLoad)
+                    StateHasChanged();
+            });
+        }
+    }
+
     private Color GetCpuUsageColor(double usage)
     {
         return usage switch
@@ -157,6 +229,25 @@
             <= 90 => Color.Error,
             _ => Color.Error
         };
+    }
+
+    private Color GetMemoryUsageColor(double usage)
+    {
+        return usage switch
+        {
+            <= 40 => Color.Success,
+            <= 79 => Color.Warning,
+            <= 90 => Color.Error,
+            _ => Color.Error
+        };
+    }
+
+    private string FormatBytes(ulong bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        if (bytes < 1024 * 1024 * 1024) return $"{bytes / (1024.0 * 1024.0):F1} MB";
+        return $"{bytes / (1024.0 * 1024.0 * 1024.0):F1} GB";
     }
 }
 

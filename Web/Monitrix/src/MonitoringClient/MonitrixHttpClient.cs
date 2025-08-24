@@ -16,6 +16,23 @@ public sealed class MonitrixHttpClient
 
     public Task<CpuSnapshotModel?> GetCpuSnapshotAsync()
     {
-        return _httpClient.GetFromJsonAsync<CpuSnapshotModel>("/cpu");
+        try
+        {
+            return _httpClient.GetFromJsonAsync<CpuSnapshotModel>("/cpu");
+        }
+        catch { }
+
+        return Task.FromResult<CpuSnapshotModel?>(new());
+    }
+
+    public Task<RamUsageModel?> GetRamUsageAsync()
+    {
+        try
+        {
+            return _httpClient.GetFromJsonAsync<RamUsageModel>("/ram");
+        }
+        catch { }
+
+        return Task.FromResult<RamUsageModel?>(new());
     }
 }
