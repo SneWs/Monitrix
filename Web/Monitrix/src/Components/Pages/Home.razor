@@ -165,10 +165,10 @@
             </MudPaper>
         </MudItem>
         
-        <MudItem xs="12" md="6" lg="4">
-            <MudPaper Class="pa-6" Elevation="4">
-                @if (_gpuSnapshot.GpuUsage.Any())
-                {
+        @if (_gpuSnapshot.GpuUsage.Any())
+        {
+            <MudItem xs="12" md="6" lg="4">
+                <MudPaper Class="pa-6" Elevation="4">
                     <MudStack AlignItems="AlignItems.Center" Spacing="4">
                         <!-- GPU Usage Gauge (First GPU) -->
                         <MudStack AlignItems="AlignItems.Center" Spacing="2">
@@ -261,16 +261,90 @@
                             }
                         }
                     </MudStack>
-                }
-                else
-                {
+                </MudPaper>
+            </MudItem>
+        }
+        else
+        {
+            <MudItem xs="12" md="6" lg="4">
+                <MudPaper Class="pa-6" Elevation="4">
                     <MudStack AlignItems="AlignItems.Center" Spacing="4">
-                        <MudText Typo="Typo.h5" Class="mb-4">GPU</MudText>
-                        <MudText Typo="Typo.body1" Class="text-center">No GPU information available</MudText>
+                        <MudText Typo="Typo.h5">GPU Usage</MudText>
+                            <div style="position: relative;">
+                                <MudProgressCircular 
+                                    Color="@GetGpuUsageColor(0)"
+                                    Size="Size.Large" 
+                                    Indeterminate="false" 
+                                    Value="0"
+                                    StrokeWidth="8"
+                                    Style="width: 120px; height: 120px;" />
+                            </div>
                     </MudStack>
-                }
+                </MudPaper>
+            </MudItem>
+        }
+
+        <MudItem xs="12" md="12" lg="12">
+            <MudPaper Class="pa-6" Elevation="4">
+                <MudStack Spacing="4">
+                    <!-- Processes Header -->
+                    <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                        <MudText Typo="Typo.h5">Running Processes</MudText>
+                        <MudText Typo="Typo.body2" Class="text-center">
+                            @($"{_processes.Count} processes running")
+                        </MudText>
+                    </MudStack>
+
+                    <MudDivider />
+
+                    <!-- Processes List -->
+                    @if (_processes.Any())
+                    {
+                        <MudStack Spacing="2" Style="width: 100%; max-height: 400px; overflow-y: auto;">
+                            <MudText Typo="Typo.h6">Process List</MudText>
+                            @foreach (var process in _processes)
+                            {
+                                <div class="d-flex align-center gap-3" style="padding: 8px; border-bottom: 1px solid var(--mud-palette-divider);">
+                                    <MudText Typo="Typo.body2" Style="min-width: 60px; font-weight: 500;">
+                                        @process.Id
+                                    </MudText>
+                                    <MudText Typo="Typo.body2" Style="min-width: 200px; flex-grow: 1;">
+                                        @process.Name
+                                    </MudText>
+                                    <MudStack Spacing="1" Style="min-width: 120px;">
+                                        <MudProgressLinear 
+                                            Color="@GetCpuUsageColor(process.CpuUsage)" 
+                                            Value="process.CpuUsage" 
+                                            Rounded="true" 
+                                            Size="Size.Small" />
+                                        <MudText Typo="Typo.caption" Style="text-align: center;">
+                                            CPU: @($"{process.CpuUsage:F1}%")
+                                        </MudText>
+                                    </MudStack>
+                                    <MudStack Spacing="1" Style="min-width: 120px;">
+                                        <MudProgressLinear 
+                                            Color="@GetMemoryUsageColor(process.MemoryUsage)" 
+                                            Value="process.MemoryUsage" 
+                                            Rounded="true" 
+                                            Size="Size.Small" />
+                                        <MudText Typo="Typo.caption" Style="text-align: center;">
+                                            RAM: @($"{FormatBytes((ulong)process.MemoryUsage * 1000000)}")
+                                        </MudText>
+                                    </MudStack>
+                                </div>
+                            }
+                        </MudStack>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body1" Class="text-center">
+                            No processes found
+                        </MudText>
+                    }
+                </MudStack>
             </MudPaper>
         </MudItem>
+
     </MudGrid>
 </MudContainer>
 
@@ -278,6 +352,7 @@
     private CpuSnapshotModel _cpuSnapshot = new();
     private GpuSnapshotModel _gpuSnapshot = new();
     private RamUsageModel _ramUsage = new();
+    private List<ProcessInfoModel> _processes = new();
     private Timer _refreshTimer = null!;
 
     protected override async Task OnInitializedAsync()
@@ -285,6 +360,7 @@
         await LoadCpuInfoAsync(true);
         await LoadRamUsageAsync(true);
         await LoadGpuInfo(true);
+        await LoadProcesses(true);
 
         _refreshTimer = new Timer(async _ => await ReloadStatsAsync(), null, 0, 3000);
 
@@ -296,8 +372,23 @@
         await LoadCpuInfoAsync(true);
         await LoadRamUsageAsync(true);
         await LoadGpuInfo(true);
+        await LoadProcesses(true);
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadProcesses(bool isFirstLoad = false)
+    {
+        var processes = await HttpApi.GetProcessesOverview();
+        _processes = processes ?? new List<ProcessInfoModel>();
+        _processes = _processes.OrderByDescending(x => x.MemoryUsage)
+            .ThenByDescending(p => p.CpuUsage)
+            .ToList();
+
+        await InvokeAsync(() => {
+            if (!isFirstLoad)
+                StateHasChanged();
+        });
     }
 
     private async Task LoadGpuInfo(bool isFirstLoad = false)

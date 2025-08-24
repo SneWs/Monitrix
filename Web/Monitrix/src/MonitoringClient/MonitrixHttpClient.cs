@@ -1,4 +1,6 @@
-﻿using System.Net.Http;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Monitrix.System.Models;
@@ -45,5 +47,16 @@ public sealed class MonitrixHttpClient
         catch { }
 
         return Task.FromResult<GpuSnapshotModel?>(new());
+    }
+
+    public Task<List<ProcessInfoModel>?> GetProcessesOverview()
+    {
+        try
+        {
+            return _httpClient.GetFromJsonAsync<List<ProcessInfoModel>>("/processes");
+        }
+        catch { }
+
+        return Task.FromResult<List<ProcessInfoModel>?>(new());
     }
 }
