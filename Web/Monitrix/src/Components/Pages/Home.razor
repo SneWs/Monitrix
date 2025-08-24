@@ -109,7 +109,6 @@
             </MudPaper>
         </MudItem>
         
-        <!-- You can add more system metrics here -->
         <MudItem xs="12" md="6" lg="4">
             <MudPaper Class="pa-6" Elevation="4">
                 <MudStack AlignItems="AlignItems.Center" Spacing="4">
@@ -168,8 +167,108 @@
         
         <MudItem xs="12" md="6" lg="4">
             <MudPaper Class="pa-6" Elevation="4">
-                <MudText Typo="Typo.h5" Class="mb-4">Network</MudText>
-                <MudText Typo="Typo.body1">Coming soon...</MudText>
+                @if (_gpuSnapshot.GpuUsage.Any())
+                {
+                    <MudStack AlignItems="AlignItems.Center" Spacing="4">
+                        <!-- GPU Usage Gauge (First GPU) -->
+                        <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                            <MudText Typo="Typo.h5">GPU Usage</MudText>
+                            <div style="position: relative;">
+                                <MudProgressCircular 
+                                    Color="@GetGpuUsageColor(_gpuSnapshot.GpuUsage[0].CoreUsedPercentage)"
+                                    Size="Size.Large" 
+                                    Indeterminate="false" 
+                                    Value="@((int)_gpuSnapshot.GpuUsage[0].CoreUsedPercentage)"
+                                    StrokeWidth="8"
+                                    Style="width: 120px; height: 120px;" />
+                                
+                                <!-- Centered percentage text -->
+                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                    <MudText Typo="Typo.h4" Style="font-weight: bold;">
+                                        @($"{_gpuSnapshot.GpuUsage[0].CoreUsedPercentage:F1}%")
+                                    </MudText>
+                                </div>
+                            </div>
+                            
+                            <!-- GPU Model -->
+                            <MudText Typo="Typo.body2" Class="text-center">
+                                @(_gpuSnapshot.GpuUsage[0].Model ?? "Unknown GPU")
+                            </MudText>
+                        </MudStack>
+
+                        <MudDivider />
+
+                        <!-- GPU Information -->
+                        @for (int i = 0; i < _gpuSnapshot.GpuInfo.Count; i++)
+                        {
+                            var gpuInfo = _gpuSnapshot.GpuInfo[i];
+                            var gpuUsage = i < _gpuSnapshot.GpuUsage.Count ? _gpuSnapshot.GpuUsage[i] : null;
+                            
+                            <MudStack Spacing="3" Style="width: 100%;">
+                                @if (_gpuSnapshot.GpuInfo.Count > 1)
+                                {
+                                    <MudText Typo="Typo.h6" Class="mb-2">GPU @(i + 1) Information</MudText>
+                                }
+                                else
+                                {
+                                    <MudText Typo="Typo.h6" Class="mb-2">GPU Information</MudText>
+                                }
+                                
+                                <MudStack Spacing="2">
+                                    <div class="d-flex justify-space-between">
+                                        <MudText Typo="Typo.body2" Style="font-weight: 500;">Model:</MudText>
+                                        <MudText Typo="Typo.body2">@(gpuInfo.Model ?? "Unknown")</MudText>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-space-between">
+                                        <MudText Typo="Typo.body2" Style="font-weight: 500;">Vendor:</MudText>
+                                        <MudText Typo="Typo.body2">@(gpuInfo.Vendor ?? "Unknown")</MudText>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-space-between">
+                                        <MudText Typo="Typo.body2" Style="font-weight: 500;">Total Memory:</MudText>
+                                        <MudText Typo="Typo.body2">@FormatBytes((ulong)gpuInfo.MemorySizeInMB * 1024 * 1024)</MudText>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-space-between">
+                                        <MudText Typo="Typo.body2" Style="font-weight: 500;">Cores:</MudText>
+                                        <MudText Typo="Typo.body2">@gpuInfo.CoreCount</MudText>
+                                    </div>
+
+                                    @if (gpuUsage != null)
+                                    {
+                                        <div class="d-flex justify-space-between">
+                                            <MudText Typo="Typo.body2" Style="font-weight: 500;">Core Usage:</MudText>
+                                            <MudText Typo="Typo.body2">@($"{gpuUsage.CoreUsedPercentage:F1}%")</MudText>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-space-between">
+                                            <MudText Typo="Typo.body2" Style="font-weight: 500;">Memory Used:</MudText>
+                                            <MudText Typo="Typo.body2">@FormatBytes((ulong)gpuUsage.MemoryUsedInMB * 1024 * 1024)</MudText>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-space-between">
+                                            <MudText Typo="Typo.body2" Style="font-weight: 500;">Memory Usage:</MudText>
+                                            <MudText Typo="Typo.body2">@($"{gpuUsage.MemoryUsedPercentage:F1}%")</MudText>
+                                        </div>
+                                    }
+                                </MudStack>
+                            </MudStack>
+                            
+                            @if (i < _gpuSnapshot.GpuInfo.Count - 1)
+                            {
+                                <MudDivider />
+                            }
+                        }
+                    </MudStack>
+                }
+                else
+                {
+                    <MudStack AlignItems="AlignItems.Center" Spacing="4">
+                        <MudText Typo="Typo.h5" Class="mb-4">GPU</MudText>
+                        <MudText Typo="Typo.body1" Class="text-center">No GPU information available</MudText>
+                    </MudStack>
+                }
             </MudPaper>
         </MudItem>
     </MudGrid>
@@ -177,6 +276,7 @@
 
 @code {
     private CpuSnapshotModel _cpuSnapshot = new();
+    private GpuSnapshotModel _gpuSnapshot = new();
     private RamUsageModel _ramUsage = new();
     private Timer _refreshTimer = null!;
 
@@ -184,19 +284,34 @@
     {
         await LoadCpuInfoAsync(true);
         await LoadRamUsageAsync(true);
+        await LoadGpuInfo(true);
 
-        _refreshTimer = new Timer(async _ => await ReloadStatsAsync(), null, 0, 2000);
+        _refreshTimer = new Timer(async _ => await ReloadStatsAsync(), null, 0, 3000);
 
         await base.OnInitializedAsync();
     }
 
     private async Task ReloadStatsAsync()
     {
-        var t1 = LoadCpuInfoAsync(true);
-        var t2 = LoadRamUsageAsync(true);
+        await LoadCpuInfoAsync(true);
+        await LoadRamUsageAsync(true);
+        await LoadGpuInfo(true);
 
-        await Task.WhenAll(t1, t2);
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadGpuInfo(bool isFirstLoad = false)
+    {
+        var gpuSnapshot = await HttpApi.GetGpuUsageAsync();
+        if (gpuSnapshot != null)
+        {
+            _gpuSnapshot = gpuSnapshot;
+            await InvokeAsync(() =>
+            {
+                if (!isFirstLoad)
+                    StateHasChanged();
+            });
+        }
     }
 
     private async Task LoadCpuInfoAsync(bool isFirstLoad = false)
@@ -204,8 +319,8 @@
         var cpuSnapshot = await HttpApi.GetCpuSnapshotAsync();
         if (cpuSnapshot != null)
         {
+            _cpuSnapshot = cpuSnapshot;
             await InvokeAsync(() => {
-                _cpuSnapshot = cpuSnapshot;
                 if (!isFirstLoad)
                     StateHasChanged();
             });
@@ -217,8 +332,8 @@
         var ramUsage = await HttpApi.GetRamUsageAsync();
         if (ramUsage != null)
         {
+            _ramUsage = ramUsage;
             await InvokeAsync(() => {
-                _ramUsage = ramUsage;
                 if (!isFirstLoad)
                     StateHasChanged();
             });
@@ -240,8 +355,19 @@
     {
         return usage switch
         {
-            <= 40 => Color.Success,
+            <= 60 => Color.Success,
             <= 79 => Color.Warning,
+            <= 90 => Color.Error,
+            _ => Color.Error
+        };
+    }
+
+    private Color GetGpuUsageColor(double usage)
+    {
+        return usage switch
+        {
+            <= 30 => Color.Success,
+            <= 69 => Color.Warning,
             <= 90 => Color.Error,
             _ => Color.Error
         };
