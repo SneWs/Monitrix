@@ -13,4 +13,6 @@ public sealed class CpuInfoModel
     public int ThreadCount { get; init; }
 
     public bool IsHyperThreadingEnabled { get; init; }
+    
+    public float CpuSpeedMhz { get; init; }
 }

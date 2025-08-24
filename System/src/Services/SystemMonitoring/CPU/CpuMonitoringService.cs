@@ -141,16 +141,17 @@ public sealed class CpuMonitoringService : ICpuMonitoringService
                 architecture = await GetArchitectureFromUnameAsync();
             }
 
-            bool isHyperThreadingEnabled = threadCount > coreCount;
+            var isHyperThreadingEnabled = threadCount > coreCount;
+            var maxSpeed = await GetCpuMaxFrequencyAsync();
 
-            return new CpuInfoModel
-            {
+            return new CpuInfoModel {
                 Architecture = architecture,
                 ModelName = modelName,
                 VendorId = vendorId,
                 CoreCount = coreCount,
                 ThreadCount = threadCount,
-                IsHyperThreadingEnabled = isHyperThreadingEnabled
+                IsHyperThreadingEnabled = isHyperThreadingEnabled,
+                CpuSpeedMhz = maxSpeed,
             };
         }
         catch (Exception ex)
@@ -192,35 +193,18 @@ public sealed class CpuMonitoringService : ICpuMonitoringService
         }
     }
 
-    private async Task<double> GetCpuMaxFrequencyAsync()
+    private async Task<float> GetCpuMaxFrequencyAsync()
     {
         try
         {
-            var cpuInfoPath = "/proc/cpuinfo";
-            if (!File.Exists(cpuInfoPath))
-                return 0;
-
-            var lines = await File.ReadAllLinesAsync(cpuInfoPath);
-            foreach (var line in lines)
-            {
-                if (line.StartsWith("cpu MHz", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    var parts = line.Split(':', StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length == 2 && double.TryParse(parts[1].Trim(), out var mhz))
-                    {
-                        return mhz;
-                    }
-                }
-            }
-
-            // Fallback: try to read from cpufreq
-            var scalingMaxFreqPath = "/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq";
+            // Try to read from cpufreq
+            var scalingMaxFreqPath = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq";
             if (File.Exists(scalingMaxFreqPath))
             {
                 var freqText = await File.ReadAllTextAsync(scalingMaxFreqPath);
                 if (long.TryParse(freqText.Trim(), out var freqKhz))
                 {
-                    return freqKhz / 1000.0; // Convert from KHz to MHz
+                    return freqKhz / 1000.0f; // Convert from KHz to MHz
                 }
             }
         }
@@ -228,10 +212,11 @@ public sealed class CpuMonitoringService : ICpuMonitoringService
         {
             _logger.LogWarning(ex, "Could not retrieve CPU max frequency");
         }
+        
         return 0;
     }
 
-    private async Task<double> GetCurrentCpuFrequencyAsync()
+    private async Task<float> GetCurrentCpuFrequencyAsync()
     {
         try
         {
@@ -241,7 +226,7 @@ public sealed class CpuMonitoringService : ICpuMonitoringService
                 var freqText = await File.ReadAllTextAsync(scalingCurFreqPath);
                 if (long.TryParse(freqText.Trim(), out var freqKhz))
                 {
-                    return freqKhz / 1000.0; // Convert from KHz to MHz
+                    return freqKhz / 1000.0f; // Convert from KHz to MHz
                 }
             }
 
