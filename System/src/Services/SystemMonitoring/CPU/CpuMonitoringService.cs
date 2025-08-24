@@ -203,9 +203,9 @@ public sealed class CpuMonitoringService : ICpuMonitoringService
             var lines = await File.ReadAllLinesAsync(cpuInfoPath);
             foreach (var line in lines)
             {
-                if (line.StartsWith("cpu MHz"))
+                if (line.StartsWith("cpu MHz", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    var parts = line.Split(':');
+                    var parts = line.Split(':', StringSplitOptions.RemoveEmptyEntries);
                     if (parts.Length == 2 && double.TryParse(parts[1].Trim(), out var mhz))
                     {
                         return mhz;
