@@ -4,13 +4,13 @@ namespace Monitrix.System.Models;
 
 public sealed class SystemSnapshotModel
 {
-    public CpuSnapshotModel Cpu { get; init; }
+    public CpuSnapshotModel Cpu { get; init; } = new();
 
-    public GpuSnapshotModel Gpu { get; init; }
+    public GpuSnapshotModel Gpu { get; init; } = new();
 
-    public RamUsageModel Ram { get; init; }
+    public RamUsageModel Ram { get; init; } = new();
 
-    public IReadOnlyCollection<ProcessInfoModel> Processes { get; init; }
+    public IReadOnlyCollection<ProcessInfoModel> Processes { get; init; } = new List<ProcessInfoModel>();
 
-    public IReadOnlyCollection<NetworkInfoModel> NetworkInterfaces { get; init; }
+    public IReadOnlyCollection<NetworkInfoModel> NetworkInterfaces { get; init; } = new List<NetworkInfoModel>();
 }
